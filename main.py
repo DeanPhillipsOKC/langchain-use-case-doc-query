@@ -5,6 +5,7 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain import hub
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnableParallel
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,13 +28,17 @@ llm = ChatOpenAI(model_name="gpt-4", temperature=0)
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-rag_chain = (
-    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+rag_chain_from_docs = (
+    RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
     | prompt
     | llm
     | StrOutputParser()
 )
 
-rag_chain.invoke("What is Task Decomponsition?")
+rag_chain_with_source = RunnableParallel(
+    {"context": retriever, "question": RunnablePassthrough()}
+).assign(answer=rag_chain_from_docs)
+
+rag_chain_with_source.invoke("What is Task Decomponsition?")
 
 vectorstore.delete_collection()

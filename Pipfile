@@ -11,6 +11,7 @@ langchain-openai = "*"
 chromadb = "*"
 bs4 = "*"
 python-dotenv = "*"
+pysimplegui = "*"
 
 [dev-packages]
 
